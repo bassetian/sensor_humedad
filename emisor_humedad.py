@@ -28,9 +28,11 @@ if re == 5:   # (no deep sleep)
     contraseña = "53gur1d4d4tm"
     wlan.active(True)
     wlan.connect(red, contraseña)
-    while not wlan.isconnected():
+    c = 10
+    while not wlan.isconnected() and c>=0:
         time.sleep(1)
-    print("Conexión Wi-Fi establecida:", wlan.ifconfig())
+        c+=1
+    print("Conexión Wi-Fi:", wlan.ifconfig())
 
     # Obtener hora desde NTP
     try:
@@ -40,13 +42,13 @@ if re == 5:   # (no deep sleep)
         print("Hora UTC sincronizada:", rtc.datetime())
 
         # Ajustar a hora local (UTC-6, CDMX)
-        año, mes, dia, dia_semana, hora, minuto, segundo, subseg = rtc.datetime()
-        hora_local = (hora - 6) % 24
-        rtc.datetime((año, mes, dia, dia_semana, hora_local, minuto, segundo, subseg))
-        print("Hora local ajustada:", rtc.datetime())
+        #año, mes, dia, dia_semana, hora, minuto, segundo, subseg = rtc.datetime()
+        #hora_local = (hora - 6) % 24
+        #rtc.datetime((año, mes, dia, dia_semana, hora_local, minuto, segundo, subseg))
+        #print("Hora local ajustada:", rtc.datetime())
     except Exception as e:
         print("Error al sincronizar NTP:", e)
-        rtc.datetime((2025, 6, 13, 0, 18, 0, 0, 0))
+        #rtc.datetime((2025, 6, 13, 0, 18, 0, 0, 0))
 
     # Desconectar de la red, pero dejar STA activo para ESP-NOW
     if wlan.isconnected():
@@ -98,7 +100,7 @@ with open('/sd/registro.txt', 'a') as f:
 e = espnow.ESPNow()
 e.active(True)
 
-# Dirección MAC del receptor
+# Dirección MAC del receptor (broadcast)
 peer = b'\xff\xff\xff\xff\xff\xff'
 e.add_peer(peer)
 
@@ -106,11 +108,13 @@ print("Enviando por ESP-NOW:", r)
 e.send(peer, r.encode())
 
 # Esperar un poco para asegurar envío
-sleep(1)
+sleep(0.5)
+wlan.active(False)  # Para ESP-NOW
 
 # Apagar todo antes de deep sleep
 os.umount('/sd')
 led.value(0)
 
-print("Entrando en modo deep sleep por 5 minutos...")
-machine.deepsleep(300000)
+tsleep = 3
+print("Entrando en modo deep sleep por {} minutos...".format(tsleep))
+machine.deepsleep(60000*tsleep)
