@@ -28,10 +28,15 @@ if re == 5:   # (no deep sleep)
     contraseña = "53gur1d4d4tm"
     wlan.active(True)
     wlan.connect(red, contraseña)
-    c = 10
-    while not wlan.isconnected() and c>=0:
+    tiempo = 30
+    for _ in range(tiempo):
+        if wlan.isconnected():
+            break
         time.sleep(1)
-        c+=1
+    #c = 10
+    #while not wlan.isconnected() and c>=0:
+        #time.sleep(1)
+        #c+=1
     print("Conexión Wi-Fi:", wlan.ifconfig())
 
     # Obtener hora desde NTP
